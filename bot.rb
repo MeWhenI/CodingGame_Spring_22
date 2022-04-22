@@ -32,7 +32,7 @@ class Def
  end
 
  def self.defend(monster, hero)
-  if monster.sqdist(hero.x, hero.y) < 1280**2 && monster.shield_life == 0 && monster.sqdist($my_base_x, $my_base_y) < 2222 **2 && $mana > 10
+  if monster.sqdist(hero.x, hero.y) < 1280**2 && monster.shield_life == 0 && monster.sqdist($my_base_x, $my_base_y) < 2222 **2 && $mana >= 10
    $mana -= 10
    return "SPELL WIND #{$op_base_x} #{$op_base_y}"
   end
@@ -65,7 +65,7 @@ class Att
   shield = "SPELL SHIELD #{monster.id}"
   spell = wind
   spell = shield if monster.threat_for == 2 && rand(10) > 8 && monster.health >= 10
-  if monster.sqdist(hero.x, hero.y) < 1280**2 && monster.shield_life == 0 && $mana > 20
+  if monster.sqdist(hero.x, hero.y) < 1280**2 && monster.shield_life == 0 && $mana >= 20
    $mana -= 10
    return spell
   end
@@ -93,7 +93,7 @@ $my_base_x, $my_base_y = gets.split.collect &:to_i
 $op_base_x, $op_base_y = MAP_WIDTH - $my_base_x, MAP_HEIGHT - $my_base_y
 $home_bases = [
   [$my_base_x == 0 ? 2000 : MAP_WIDTH - 2000, $my_base_y == 0 ? 2000 : MAP_HEIGHT - 2000],
-  [$my_base_x == 0 ? 5000 : MAP_WIDTH - 5000, $my_base_y == 0 ? 5000 : MAP_HEIGHT - 6000],
+  [$my_base_x == 0 ? 5000 : MAP_WIDTH - 5000, $my_base_y == 0 ? 5000 : MAP_HEIGHT - 5000],
   [$my_base_x != 0 ? 3000 : MAP_WIDTH - 3000, $my_base_y != 0 ? 3000 : MAP_HEIGHT - 3000]
 ]
 $heroes_per_player = gets.to_i
@@ -114,7 +114,7 @@ loop {
   type == TYPE_OP_HERO && op_heroes    << Entity.new(id, stats)
  }
 
- threats = monsters.filter { |k, v| STDERR.puts v.health; v.threat_for == 1 }
+ threats = monsters.filter { |k, v| v.threat_for == 1 }
 
  # Shmoov
 
