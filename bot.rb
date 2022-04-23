@@ -128,19 +128,24 @@ loop {
 
  threats = monsters.filter { _1.threat_for == 1 }
 
+ neutrals = monsters.filter { _1.threat_for == 0 }
+
  # Shmoov
 
  $under_attack |= op_heroes.any? { _1.sqdist($my_base_coords) < 5500 ** 2}
 
  # Defensive guy 0
  hero = my_heroes[0]
- target = Def.defensive_guy(threats.filter{ _1.sqdist($my_base_coords) < 6000**2 })
+ target = Def.defensive_guy(threats.size > 0 ? threats : neutrals)
  puts Def.def_string(hero, target, monsters.find { _1.id == target }, $under_attack ? $home_bases[0] : jungler_base(-1))
- threats.delete(target) if threats.size > 1
+
+ threats.delete_if { _1.id == target}
+ neutrals.delete_if { _1.id == target}
+ STDERR.puts "#{$under_attack}"
 
  # Defensive guy 1
  hero = my_heroes[1]
- target = Def.defensive_guy(threats)
+ target = Def.defensive_guy(threats.size > 0 ? threats : neutrals)
  puts Def.def_string(hero, target, monsters.find { _1.id == target }, jungler_base(1))
 
  # Attack guy 0
