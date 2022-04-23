@@ -1,0 +1,22 @@
+# Attacker
+
+don't move randomly, formalize the jungler movement method and implement it for attacker
+mess with range, he spends too much time doing nothing / not going for monsters that are slightly too far
+look at how the pros use control, im too conservative with it
+ the "monster is close to base" cond for control is probably too limiting / totally unneccesary
+offensive shield use?
+ 
+ # Defenders
+ 
+ i get dunked on by control attackers
+ shield (on monsters) attackers are also rough?
+ more effective decisions on who goes for what target
+ its really bad when the two switch targets (monsters crossing the direction change border might affect this)
+ develop more under_attack procedures
+ move out of control range (or wind them out of range from controlling me)? or else just keep eachother in shield-cast range
+ learn attacker's control pattern? if they aren't spamming control every frame my guys can shield themselves
+ 
+ 
+ # Misc
+ 
+ method for cmp sqrdist so im not using "magic number" esque squaring
