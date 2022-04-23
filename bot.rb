@@ -51,10 +51,19 @@ class Att
  def self.attack_guy(monsters)
   return -1 if monsters.size == 0
 
-  return monsters.sort_by { |k, v| v.sqdist($op_base_x, $op_base_y) }[..3].sample[0]
+  return monsters.min_by { |k, v| v.sqdist($op_base_x, $op_base_y) }[0]
  end
 
- def self.att_string(hero, monster_num, monster, base)
+ def self.att_string(hero, monster_num, monster, base, op_heroes, monsters)
+  if monsters.any?{|k, v| v.sqdist($op_base_x, $op_base_y) < 800**2}
+    def_ops = op_heroes.filter{ _1.sqdist($op_base_x, $op_base_y) < 900**2}
+    if def_ops.size > 0
+     def_op = def_ops[0]
+     if def_op.shield_life == 0 && $mana >= 20
+      return "SPELL CONTROL #{def_op.id} #{$my_base_x} #{$my_base_y}"
+     end
+    end
+  end
   s = monster_num == -1 ? "MOVE #{base.join " "}" : attack(monster, hero)
   s += " " + message()
   return s
@@ -64,7 +73,7 @@ class Att
   wind = "SPELL WIND #{$op_base_x} #{$op_base_y}"
   shield = "SPELL SHIELD #{monster.id}"
   spell = wind
-  spell = shield if monster.threat_for == 2 && rand(10) > 8 && monster.health >= 10
+  spell = shield if monster.threat_for == 2 && rand(10) > 7 && monster.health >= 10
   if monster.sqdist(hero.x, hero.y) < 1280**2 && monster.shield_life == 0 && $mana >= 20
    $mana -= 10
    return spell
@@ -98,6 +107,8 @@ $home_bases = [
 ]
 $heroes_per_player = gets.to_i
 
+$under_attack = false
+
 loop {
  # Grab data
  my_health, my_mana = gets.split.collect &:to_i
@@ -118,10 +129,12 @@ loop {
 
  # Shmoov
 
+ $under_attack |= op_heroes.any? { _1.sqdist($my_base_x, $my_base_y) < 5500 ** 2}
+
  # Defensive guy 0
  hero = my_heroes[0]
  target = Def.defensive_guy(threats.filter{|k, v| v.sqdist($my_base_x, $my_base_y) < 6000**2 })
- puts Def.def_string(hero, target, monsters[target], $home_bases[0])
+ puts Def.def_string(hero, target, monsters[target], $under_attack ? $home_bases[0] : jungler_base(-1))
  threats.delete(target) if threats.size > 1
 
  # Defensive guy 1
@@ -132,5 +145,5 @@ loop {
  # Attack guy 0
  hero = my_heroes[2]
  target = Att.attack_guy(monsters.filter { |k, v| v.shield_life == 0 && v.sqdist($op_base_x, $op_base_y) < 7000**2 })
- puts Att.att_string(hero, target, monsters[target], $home_bases[2])
+ puts Att.att_string(hero, target, monsters[target], $home_bases[2].map {_1 + 2000 - rand(4000)}, op_heroes, monsters)
 }
