@@ -8,31 +8,32 @@ MAP_WIDTH  = 17630
 MAP_HEIGHT = 9000
 
 class Entity
- attr_reader :id, :threat_for, :x, :y, :is_controlled, :health, :shield_life
+ attr_reader :id, :x, :y, :shield_life, :is_controlled, :health, :vx, :vy, :near_base, :threat_for, :coords
 
  def initialize(id, stats)
   @id = id
   @x, @y, @shield_life, @is_controlled, @health, @vx, @vy, @near_base, @threat_for = stats
+  @coords = [@x, @y]
  end
 
- def coords
-  [@x, @y]
+ def sqdist(target_coords)
+  return (@x - target_coords[0])**2 + (@y - target_coords[1])**2
  end
+end
 
- def sqdist(target_x, target_y)
-  return (@x - target_x)**2 + (@y - target_y)**2
- end
+class AI
+ 
 end
 
 class Def
  def self.defensive_guy(threats)
   return -1 if threats.size == 0
 
-  return threats.min_by{ |k, v| v.sqdist($my_base_x, $my_base_y) }[0]
+  return threats.min_by{ |k, v| v.sqdist($my_base_coords) }[0]
  end
 
  def self.defend(monster, hero)
-  if monster.sqdist(hero.x, hero.y) < 1280**2 && monster.shield_life == 0 && monster.sqdist($my_base_x, $my_base_y) < 2222 **2 && $mana >= 10
+  if monster.sqdist(hero.coords) < 1280**2 && monster.shield_life == 0 && monster.sqdist($my_base_coords) < 2222 **2 && $mana >= 10
    $mana -= 10
    return "SPELL WIND #{$op_base_x} #{$op_base_y}"
   end
@@ -51,16 +52,16 @@ class Att
  def self.attack_guy(monsters)
   return -1 if monsters.size == 0
 
-  return monsters.min_by { |k, v| v.sqdist($op_base_x, $op_base_y) }[0]
+  return monsters.min_by { |k, v| v.sqdist($op_base_coords) }[0]
  end
 
  def self.att_string(hero, monster_num, monster, base, op_heroes, monsters)
-  if monsters.any?{|k, v| v.sqdist($op_base_x, $op_base_y) < 800**2}
-    def_ops = op_heroes.filter{ _1.sqdist($op_base_x, $op_base_y) < 900**2}
+  if monsters.any?{|k, v| v.sqdist($op_base_coords) < 800**2}
+    def_ops = op_heroes.filter{ _1.sqdist($op_base_coords) < 900**2}
     if def_ops.size > 0
      def_op = def_ops[0]
      if def_op.shield_life == 0 && $mana >= 20
-      return "SPELL CONTROL #{def_op.id} #{$my_base_x} #{$my_base_y}"
+      return "SPELL CONTROL #{def_op.id} #{$y_base_coords.join " "}"
      end
     end
   end
@@ -70,11 +71,11 @@ class Att
  end
 
  def self.attack(monster, hero)
-  wind = "SPELL WIND #{$op_base_x} #{$op_base_y}"
+  wind = "SPELL WIND #{$op_base_coords.join " "}"
   shield = "SPELL SHIELD #{monster.id}"
   spell = wind
   spell = shield if monster.threat_for == 2 && rand(10) > 7 && monster.health >= 10
-  if monster.sqdist(hero.x, hero.y) < 1280**2 && monster.shield_life == 0 && $mana >= 20
+  if monster.sqdist(hero.coords) < 1280**2 && monster.shield_life == 0 && $mana >= 20
    $mana -= 10
    return spell
   end
@@ -99,7 +100,9 @@ end
 $mana = 0
 
 $my_base_x, $my_base_y = gets.split.collect &:to_i
+$my_base_coords = [$my_base_x, $my_base_y]
 $op_base_x, $op_base_y = MAP_WIDTH - $my_base_x, MAP_HEIGHT - $my_base_y
+$op_base_coords = [$op_base_x, $op_base_y]
 $home_bases = [
   [$my_base_x == 0 ? 2000 : MAP_WIDTH - 2000, $my_base_y == 0 ? 2000 : MAP_HEIGHT - 2000],
   [$my_base_x == 0 ? 5000 : MAP_WIDTH - 5000, $my_base_y == 0 ? 5000 : MAP_HEIGHT - 5000],
@@ -129,11 +132,11 @@ loop {
 
  # Shmoov
 
- $under_attack |= op_heroes.any? { _1.sqdist($my_base_x, $my_base_y) < 5500 ** 2}
+ $under_attack |= op_heroes.any? { _1.sqdist($my_base_coords) < 5500 ** 2}
 
  # Defensive guy 0
  hero = my_heroes[0]
- target = Def.defensive_guy(threats.filter{|k, v| v.sqdist($my_base_x, $my_base_y) < 6000**2 })
+ target = Def.defensive_guy(threats.filter{|k, v| v.sqdist($my_base_coords) < 6000**2 })
  puts Def.def_string(hero, target, monsters[target], $under_attack ? $home_bases[0] : jungler_base(-1))
  threats.delete(target) if threats.size > 1
 
@@ -144,6 +147,6 @@ loop {
 
  # Attack guy 0
  hero = my_heroes[2]
- target = Att.attack_guy(monsters.filter { |k, v| v.shield_life == 0 && v.sqdist($op_base_x, $op_base_y) < 7000**2 })
+ target = Att.attack_guy(monsters.filter { |k, v| v.shield_life == 0 && v.sqdist($op_base_coords) < 7000**2 })
  puts Att.att_string(hero, target, monsters[target], $home_bases[2].map {_1 + 2000 - rand(4000)}, op_heroes, monsters)
 }
