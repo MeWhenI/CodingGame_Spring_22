@@ -61,7 +61,7 @@ class Att
     if def_ops.size > 0
      def_op = def_ops[0]
      if def_op.shield_life == 0 && $mana >= 20
-      return "SPELL CONTROL #{def_op.id} #{$y_base_coords.join " "}"
+      return "SPELL CONTROL #{def_op.id} #{$my_base_coords.join " "}"
      end
     end
   end
