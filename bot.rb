@@ -21,10 +21,6 @@ class Entity
  end
 end
 
-class AI
- 
-end
-
 class Def
  def self.defensive_guy(threats)
   return -1 if threats.size == 0
